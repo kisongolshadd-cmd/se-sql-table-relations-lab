@@ -1,24 +1,24 @@
+# STEP 0
 
-
-
+# SQL Library and Pandas Library
 import sqlite3
 import pandas as pd
 
-
+# Connect to the database
 conn = sqlite3.connect('data.sqlite')
 
 pd.read_sql("""SELECT * FROM sqlite_master""", conn)
 
-
+# STEP 1
 df_boston = pd.read_sql("""
-    SELECT e.firstName, e.lastName, e.jobTitle
+    SELECT e.firstName, e.lastName
     FROM employees e
     JOIN offices o
         ON e.officeCode = o.officeCode
     WHERE o.city = 'Boston'
 """, conn)
 
-
+# STEP 2
 df_zero_emp = pd.read_sql("""
     SELECT o.officeCode, o.city
     FROM offices o
@@ -28,7 +28,7 @@ df_zero_emp = pd.read_sql("""
     HAVING COUNT(e.employeeNumber) = 0
 """, conn)
 
-
+# STEP 3
 df_employee = pd.read_sql("""
     SELECT e.firstName, e.lastName, o.city, o.state
     FROM employees e
@@ -37,7 +37,7 @@ df_employee = pd.read_sql("""
     ORDER BY e.firstName, e.lastName
 """, conn)
 
-
+# STEP 4
 df_contacts = pd.read_sql("""
     SELECT c.contactFirstName, c.contactLastName, c.phone,
            c.salesRepEmployeeNumber
@@ -48,7 +48,7 @@ df_contacts = pd.read_sql("""
     ORDER BY c.contactLastName
 """, conn)
 
-
+# STEP 5
 df_payment = pd.read_sql("""
     SELECT c.contactFirstName, c.contactLastName,
            p.amount, p.paymentDate
@@ -58,7 +58,7 @@ df_payment = pd.read_sql("""
     ORDER BY CAST(p.amount AS REAL) DESC
 """, conn)
 
-
+# STEP 6
 df_credit = pd.read_sql("""
     SELECT e.employeeNumber, e.firstName, e.lastName,
            COUNT(c.customerNumber) AS n_customers
@@ -70,7 +70,7 @@ df_credit = pd.read_sql("""
     ORDER BY n_customers DESC
 """, conn)
 
-
+# STEP 7
 df_product_sold = pd.read_sql("""
     SELECT p.productName,
            COUNT(od.orderNumber) AS numorders,
@@ -82,7 +82,7 @@ df_product_sold = pd.read_sql("""
     ORDER BY totalunits DESC
 """, conn)
 
-
+# STEP 8
 df_total_customers = pd.read_sql("""
     SELECT p.productName, p.productCode,
            COUNT(DISTINCT o.customerNumber) AS numpurchasers
@@ -95,7 +95,7 @@ df_total_customers = pd.read_sql("""
     ORDER BY numpurchasers DESC
 """, conn)
 
-
+# STEP 9
 df_customers = pd.read_sql("""
     SELECT COUNT(c.customerNumber) AS n_customers,
            o.officeCode, o.city
@@ -107,7 +107,7 @@ df_customers = pd.read_sql("""
     GROUP BY o.officeCode, o.city
 """, conn)
 
-20 
+# STEP 10
 df_under_20 = pd.read_sql("""
     SELECT DISTINCT e.employeeNumber, e.firstName, e.lastName,
            ofc.city, ofc.officeCode
@@ -128,14 +128,7 @@ df_under_20 = pd.read_sql("""
         GROUP BY od2.productCode
         HAVING COUNT(DISTINCT o2.customerNumber) < 20
     )
+    ORDER BY e.lastName, e.firstName
 """, conn)
-
-
-print(len(df_boston), len(df_zero_emp), len(df_employee))
-print(len(df_contacts))   # should be 24
-print(len(df_credit))     # should be 4
-print(df_payment.head())
-print(df_under_20.head())
-# ---------------------------------------------------------------
 
 conn.close()
